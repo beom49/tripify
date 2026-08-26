@@ -9,6 +9,7 @@ import Signup from './pages/Signup.jsx';
 import Trips from './pages/Trips.jsx';
 import CreateTrip from './pages/CreateTrip.jsx';
 import TripDetail from './pages/TripDetail.jsx';
+import GuestPlanner from './pages/GuestPlanner.jsx';
 
 const AuthContext = createContext({ user: null, me: null });
 export const useAuthCtx = () => useContext(AuthContext);
@@ -22,7 +23,7 @@ function Nav({ on }) {
       <Link className="brand" to="/"><b>◎</b>Tripify<span style={{ color: '#ff5a3d' }}>.</span></Link>
       <div className="links">
         <Link className={on === 'home' ? 'on' : ''} to="/">홈</Link>
-        <a href="#/explore">탐색</a>
+        <Link className={on === 'planner' ? 'on' : ''} to="/planner">플래너</Link>
         <Link className={on === 'trips' ? 'on' : ''} to="/trips">내 여행</Link>
         <a href="#/community">커뮤니티</a>
       </div>
@@ -78,6 +79,7 @@ export default function App() {
         <Route path="/" element={<><Nav on="home" /><Home /><Footer /></>} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/planner" element={<><Nav /><GuestPlanner /><Footer /></>} />
         <Route path="/trips" element={<><Nav on="trips" /><Trips /><Footer /></>} />
         <Route path="/create" element={<><Nav /><CreateTrip /><Footer /></>} />
         <Route path="/trip/:tripId/:tab?" element={<><Nav on="trips" /><TripDetail /><Footer /></>} />
