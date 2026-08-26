@@ -49,7 +49,12 @@ firebase-key*.json
 ### Office temp files ###
 ~$*
 
-tripify ±âÈ¹¼­.docx
+### Frontend (React/Vite) ###
+frontend/node_modules/
+frontend/dist/
+*.local
 
-### Office ÀÓ½Ã ÆÄÀÏ ###
+tripify ï¿½ï¿½È¹ï¿½ï¿½.docx
+
+### Office ï¿½Ó½ï¿½ ï¿½ï¿½ï¿½ï¿½ ###
 ~$*
