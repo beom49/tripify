@@ -33,8 +33,15 @@ public class FirebaseConfig {
             FirebaseOptions options;
 
             if (serviceAccountKeyPath != null && !serviceAccountKeyPath.isBlank()) {
+                GoogleCredentials credentials;
+                if (serviceAccountKeyPath.trim().startsWith("{")) {
+                    credentials = GoogleCredentials.fromStream(
+                            new java.io.ByteArrayInputStream(serviceAccountKeyPath.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+                } else {
+                    credentials = GoogleCredentials.fromStream(new FileInputStream(serviceAccountKeyPath));
+                }
                 options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(new FileInputStream(serviceAccountKeyPath)))
+                        .setCredentials(credentials)
                         .build();
             } else if (System.getenv("GOOGLE_APPLICATION_CREDENTIALS") != null) {
                 options = FirebaseOptions.builder()

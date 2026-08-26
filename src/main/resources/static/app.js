@@ -1,4 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
+﻿import { initializeApp } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-app.js";
 import {
   getAuth,
   GoogleAuthProvider,
@@ -9,6 +9,7 @@ import {
   updateProfile
 } from "https://www.gstatic.com/firebasejs/12.18.0/firebase-auth.js";
 import { firebaseConfig } from "./firebase-config.js";
+import { API_BASE } from "./api-config.js";
 
 const app = document.querySelector('#app');
 
@@ -20,10 +21,14 @@ googleProvider.setCustomParameters({ prompt: 'select_account' });
 let me = null;
 
 async function api(path, { method = 'GET', body } = {}) {
-  const res = await fetch(path, {
+  const headers = {};
+  if (body) headers['Content-Type'] = 'application/json';
+  const user = auth.currentUser;
+  if (user) headers['Authorization'] = 'Bearer ' + await user.getIdToken();
+
+  const res = await fetch(API_BASE + path, {
     method,
-    headers: body ? { 'Content-Type': 'application/json' } : undefined,
-    credentials: 'include',
+    headers,
     body: body ? JSON.stringify(body) : undefined
   });
   if (!res.ok) {
@@ -36,18 +41,12 @@ async function api(path, { method = 'GET', body } = {}) {
   return text ? JSON.parse(text) : null;
 }
 
-async function loginToServer(idToken) {
-  me = await api('/api/auth/session', { method: 'POST', body: { idToken } });
-}
-
 async function loadMe() {
   try { me = await api('/api/auth/me'); }
   catch (_) { me = null; }
 }
 
-async function handleFirebaseUser(user) {
-  const idToken = await user.getIdToken();
-  await loginToServer(idToken);
+async function handleFirebaseUser() {
   location.hash = 'home';
 }
 
@@ -62,7 +61,7 @@ async function doSignup() {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
-    await handleFirebaseUser(cred.user);
+    await handleFirebaseUser();
   } catch (error) {
     alert(firebaseErrorMessage(error));
   }
@@ -77,7 +76,7 @@ async function doLogin() {
 
   try {
     const cred = await signInWithEmailAndPassword(auth, email, password);
-    await handleFirebaseUser(cred.user);
+    await handleFirebaseUser();
   } catch (error) {
     alert(firebaseErrorMessage(error));
   }
@@ -86,7 +85,7 @@ async function doLogin() {
 async function doGoogleLogin() {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    await handleFirebaseUser(result.user);
+    await handleFirebaseUser();
   } catch (error) {
     if (error.code !== 'auth/popup-closed-by-user') {
       alert(firebaseErrorMessage(error));
@@ -109,7 +108,6 @@ function firebaseErrorMessage(error) {
 
 async function doLogout() {
   if (!confirm('로그아웃하시겠습니까?')) return;
-  try { await api('/api/auth/logout', { method: 'POST' }); } catch (_) {}
   try { await signOut(auth); } catch (_) {}
   me = null;
   location.hash = 'login';
@@ -127,14 +125,14 @@ const dday = dateStr => {
 const nav = (on = 'home') => `<nav class="nav"><a class="brand" href="#home"><b>◎</b>Tripify<span style="color:#ff5a3d">.</span></a><div class="links"><a class="${on === 'home' ? 'on' : ''}" href="#home">홈</a><a href="#explore">탐색</a><a class="${on === 'trips' ? 'on' : ''}" href="#trips">내 여행</a><a href="#community">커뮤니티</a></div><div class="actions"><button class="soft" onclick="location.hash='create'">새 여행 만들기</button><i class="avatar" title="${me ? esc(me.name) + ' · 로그아웃' : '로그인'}" onclick="${me ? "doLogout()" : "location.hash='login'"}">${me ? esc((me.name || '?')[0]) : '로그인'}</i></div></nav>`;
 const footer = () => `<footer class="footer"><div class="foot"><div><a class="brand" href="#home"><b>◎</b>Tripify</a><p>Tripify와 함께 당신의 로망이 현실이 되는 특별한 여행을 계획해보세요. 맞춤형 루트 설계부터 동행 추천까지 한 번에.</p></div><p><b>서비스</b><br>여행지 탐색<br>일정 플래너<br>동행 찾기<br>트래블로그</p><p><b>고객지원</b><br>자주 묻는 질문<br>1:1 문의<br>이용약관<br>개인정보처리방침</p></div><small>© 2025 Tripify Inc. All rights reserved.</small></footer>`;
 
-const requireLogin = () => { if (!me) { location.hash = 'login'; return true; } return false; };
+const requireLogin = () => { if (!auth.currentUser) { location.hash = 'login'; return true; } return false; };
 
 function home() {
   let places = ['일본 교토', '인도네시아 발리', '이탈리아 아말피', '프랑스 파리'];
   return nav() + `<section class="hero"><h1>어디로 떠나고 싶으신가요?</h1><p>꿈꿔왔던 모든 순간을 나만의 맞춤 루트로 안전하게 디자인해보세요.</p><div class="search"><div><small>여행지</small>📍 어디로 떠나시나요?</div><div><small>일정</small>🗓 날짜 선택</div><div><small>인원</small>♧ 인원 추가</div><button class="primary" onclick="location.hash='create'">⌕ 일정 짜기</button></div></section><main class="container"><span class="eyebrow">인기 여행지</span><h2 class="title">이번 달 가장 많이 검색된 명소</h2><div class="cards">${places.map((x, i) => `<article class="place"><span class="chip">${['인기 급상승', '휴양 & 웰니스', '클래식 로망', '미식 & 예술'][i]}</span><strong>${x}</strong><small>평균 경비 ₩${[280, 420, 650, 820][i]},000~</small></article>`).join('')}</div><section style="margin-top:75px"><span class="eyebrow">추천 여행 코스</span><h2 class="title">전문가와 여행 마니아들이 설계한 루트</h2><div class="routegrid"><article class="route"><span class="eyebrow">29박 30일</span><h3>나홀로 떠나는 한 달 살기: 발리 예술과 서핑</h3><p class="muted">김민재 트래블러 · ♡ 1,240</p></article><article class="route"><span class="eyebrow">3박 4일</span><h3>건축학도와 함께 걷는 바르셀로나 가우디</h3><p class="muted">이소영 건축가 · ♡ 892</p></article></div></section></main>` + footer();
 }
 
-function auth(sign = false) {
+function authScreen(sign = false) {
   return `<main class="login"><section class="cover"><a class="brand" style="color:white" href="#home"><b style="color:white">◎</b>Tripify.</a><div class="tag"><h1>${sign ? '새로운 여행의 시작' : '기억에 남을<br>나만의 특별한 여정'}</h1><p>전 세계의 엄선된 여행지와 숙소를 탐색하고 계획해 보세요.</p></div><small>© 2025 Tripify Inc.</small></section><section class="form"><h1>${sign ? 'Tripify와 함께 떠나요!' : '반가워요, 여행자님!'}</h1><p class="muted">${sign ? '몇 가지 정보만 입력하면 바로 시작할 수 있어요.' : 'Tripify와 함께 다시 새로운 설렘을 시작해보세요.'}</p>${sign ? '<label>이름</label><input placeholder="이름을 입력해주세요">' : ''}<label>이메일 주소</label><input placeholder="example@tripify.com"><label>비밀번호</label><input type="password" placeholder="••••••••"><button class="primary" id="authSubmit">${sign ? '회원가입' : '로그인'}</button><p class="center muted">${sign ? '이미 계정이 있으신가요?' : '아직 회원이 아니신가요?'} <a href="#${sign ? 'login' : 'signup'}" style="color:var(--c);font-weight:bold">${sign ? '로그인하기' : '회원가입하기'}</a></p><div class="social"><button disabled>◉ Kakao</button><button disabled>◉ Naver</button><button id="googleBtn">◉ Google</button></div></section></main>`;
 }
 
@@ -292,8 +290,8 @@ function wireAuthScreen(sign) {
 
 async function route() {
   const [p, a, t] = location.hash.slice(1).split('/');
-  if (p === 'login' || p === 'signup') { app.innerHTML = auth(p === 'signup'); wireAuthScreen(p === 'signup'); return; }
-  if (me === null) await loadMe();
+  if (p === 'login' || p === 'signup') { app.innerHTML = authScreen(p === 'signup'); wireAuthScreen(p === 'signup'); return; }
+  if (auth.currentUser && me === null) await loadMe();
   if (p === 'trips') return tripsScreen();
   if (p === 'create') return createScreen();
   if (p === 'detail') return detailScreen(a, t);

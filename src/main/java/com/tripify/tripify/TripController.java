@@ -41,8 +41,7 @@ public class TripController {
     }
 
     static String currentUid(HttpServletRequest request) {
-        var session = request.getSession(false);
-        Object uid = session != null ? session.getAttribute(AuthSupport.SESSION_UID) : null;
+        Object uid = request.getAttribute(FirebaseAuthFilter.UID_ATTRIBUTE);
         if (uid == null) {
             throw new UnauthorizedException("로그인이 필요합니다.");
         }
