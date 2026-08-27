@@ -161,7 +161,7 @@ export default function TripDetail() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (user === null) navigate('/login');
+    if (user === null) navigate('/login', { replace: true });
   }, [user, navigate]);
 
   useEffect(() => {

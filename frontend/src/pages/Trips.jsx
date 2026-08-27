@@ -10,7 +10,7 @@ export default function Trips() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (user === null) navigate('/login');
+    if (user === null) navigate('/login', { replace: true });
   }, [user, navigate]);
 
   useEffect(() => {

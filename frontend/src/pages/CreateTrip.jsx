@@ -11,7 +11,7 @@ export default function CreateTrip() {
   });
 
   useEffect(() => {
-    if (user === null) navigate('/login');
+    if (user === null) navigate('/login', { replace: true });
   }, [user, navigate]);
 
   const set = k => e => setForm({ ...form, [k]: e.target.value });

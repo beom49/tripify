@@ -10,6 +10,7 @@ import Trips from './pages/Trips.jsx';
 import CreateTrip from './pages/CreateTrip.jsx';
 import TripDetail from './pages/TripDetail.jsx';
 import GuestPlanner from './pages/GuestPlanner.jsx';
+import Community from './pages/Community.jsx';
 
 const AuthContext = createContext({ user: null, me: null });
 export const useAuthCtx = () => useContext(AuthContext);
@@ -23,9 +24,9 @@ function Nav({ on }) {
       <Link className="brand" to="/"><b>◎</b>Tripify<span style={{ color: '#ff5a3d' }}>.</span></Link>
       <div className="links">
         <Link className={on === 'home' ? 'on' : ''} to="/">홈</Link>
-        <Link className={on === 'planner' ? 'on' : ''} to="/planner">플래너</Link>
+        <a href="#/explore">탐색</a>
         <Link className={on === 'trips' ? 'on' : ''} to="/trips">내 여행</Link>
-        <a href="#/community">커뮤니티</a>
+        <Link className={on === 'community' ? 'on' : ''} to="/community">커뮤니티</Link>
       </div>
       <div className="actions">
         <button className="soft" onClick={() => navigate('/create')}>새 여행 만들기</button>
@@ -83,6 +84,7 @@ export default function App() {
         <Route path="/trips" element={<><Nav on="trips" /><Trips /><Footer /></>} />
         <Route path="/create" element={<><Nav /><CreateTrip /><Footer /></>} />
         <Route path="/trip/:tripId/:tab?" element={<><Nav on="trips" /><TripDetail /><Footer /></>} />
+        <Route path="/community" element={<><Nav on="community" /><Community /><Footer /></>} />
       </Routes>
     </AuthContext.Provider>
   );
